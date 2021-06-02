@@ -1,8 +1,9 @@
 package com.gildedrose;
 
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 class GildedRose {
+
     Item[] items;
 
     public GildedRose(Item[] items) {
@@ -10,6 +11,8 @@ class GildedRose {
     }
 
     public void updateQuality() {
-        Arrays.stream(items).map(Inventory::new).forEach(Inventory::updateItem);
+        Stream.of(items)
+                .map(DegradableItem::create)
+                .forEach(DegradableItem::degrade);
     }
 }

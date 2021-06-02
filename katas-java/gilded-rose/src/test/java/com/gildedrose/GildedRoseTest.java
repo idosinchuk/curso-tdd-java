@@ -2,157 +2,166 @@ package com.gildedrose;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.gildedrose.ItemBuilder.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
-public class GildedRoseTest {
+class GildedRoseTest {
 
     @Test
-    public void quality_never_is_negative() {
-        Item[] items = new Item[]{new Item("foo", 0, 0)};
-        GildedRose app = new GildedRose(items);
+    void regular_items_decrease_sell_in_after_each_day() {
+        Item item = aRegularItem().withSellIn(5).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(0, app.items[0].quality);
+        assertThat(item.sellIn, is(4));
     }
 
     @Test
-    public void sulfuras_could_not_be_sold() {
-        Item[] items = new Item[]{new Item("Sulfuras, Hand of Ragnaros", 10, 0)};
-        GildedRose app = new GildedRose(items);
+    void regular_items_sell_in_can_be_negative() {
+        Item item = aRegularItem().withSellIn(0).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(10, app.items[0].sellIn);
+        assertThat(item.sellIn, is(-1));
     }
 
     @Test
-    public void sulfuras_could_not_decrease_quality() {
-        Item[] items = new Item[]{new Item("Sulfuras, Hand of Ragnaros", 10, 10)};
-        GildedRose app = new GildedRose(items);
+    void regular_items_quality_decreases_by_one_after_each_day() {
+        Item item = aRegularItem().withQuality(10).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(10, app.items[0].quality);
+        assertThat(item.quality, is(9));
     }
 
     @Test
-    public void quality_could_not_be_more_than_fifty() {
-        Item[] items = new Item[]{new Item("Aged Brie", 10, 50)};
-        GildedRose app = new GildedRose(items);
+    void regular_items_quality_decreases_twice_as_fast_after_expiring() {
+        Item item = aRegularItem().withQuality(10).withSellIn(0).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(50, app.items[0].quality);
+        assertThat(item.quality, is(8));
     }
 
     @Test
-    public void item_with_date_passed_quality_decrease_by_twice() {
-        Item[] items = new Item[]{new Item("foo", -1, 40)};
-        GildedRose app = new GildedRose(items);
+    void regular_items_quality_can_not_be_negative() {
+        Item item = aRegularItem().withQuality(0).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(38, app.items[0].quality);
+        assertThat(item.quality, is(0));
     }
 
     @Test
-    public void aged_brie_increase_quality_when_it_gets_older() {
-        Item[] items = new Item[]{new Item("Aged Brie", 1, 40)};
-        GildedRose app = new GildedRose(items);
+    void aged_brie_increases_quality_the_older_it_gets() {
+        Item item = agedBrie().withQuality(30).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(41, app.items[0].quality);
+        assertThat(item.quality, is(31));
     }
 
     @Test
-    public void aged_brie_increase_by_two_quality_when_date_passed() {
-        Item[] items = new Item[]{new Item("Aged Brie", -1, 40)};
-        GildedRose app = new GildedRose(items);
+    void aged_brie_increases_quality_twice_as_fast_after_expiring() {
+        Item item = agedBrie().withQuality(30).withSellIn(0).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(42, app.items[0].quality);
+        assertThat(item.quality, is(32));
     }
 
     @Test
-    public void aged_brie_increase_by_two_quality_when_date_passed_and_not_more_than_fifty() {
-        Item[] items = new Item[]{new Item("Aged Brie", -1, 50)};
-        GildedRose app = new GildedRose(items);
+    void aged_brie_quality_can_not_be_above_50() {
+        Item item = agedBrie().withQuality(50).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(50, app.items[0].quality);
+        assertThat(item.quality, is(50));
     }
 
     @Test
-    public void backstage_passes_increase_quality_by_two_when_sellin_less_than_ten() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 10, 40)};
-        GildedRose app = new GildedRose(items);
+    void sulfuras_never_decreases_sell_in() {
+        Item item = sulfuras().withSellIn(10).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(42, app.items[0].quality);
+        assertThat(item.sellIn, is(10));
     }
 
     @Test
-    public void backstage_passes_increase_quality_by_two_when_sellin_less_than_six() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 6, 40)};
-        GildedRose app = new GildedRose(items);
+    void sulfuras_never_decreases_quality() {
+        Item item = sulfuras().withQuality(10).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(42, app.items[0].quality);
+        assertThat(item.quality, is(10));
     }
 
     @Test
-    public void backstage_passes_increase_quality_by_three_when_sellin_less_than_five() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 5, 40)};
-        GildedRose app = new GildedRose(items);
+    void backstage_passes_increases_quality_by_one_as_day_passes() {
+        Item item = backstagePasses().withQuality(10).withSellIn(20).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(43, app.items[0].quality);
+        assertThat(item.quality, is(11));
     }
 
     @Test
-    public void backstage_passes_increase_quality_by_two_when_sellin_less_than_six_and_not_more_than_fifty() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 6, 49)};
-        GildedRose app = new GildedRose(items);
+    void backstage_passes_increases_quality_by_two_when_there_are_10_or_less_days_remaining() {
+        Item item = backstagePasses().withQuality(10).withSellIn(10).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(50, app.items[0].quality);
+        assertThat(item.quality, is(12));
     }
 
     @Test
-    public void backstage_passes_increase_quality_by_three_when_sellin_less_than_five_and_not_more_than_fifty() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 5, 48)};
-        GildedRose app = new GildedRose(items);
+    void backstage_passes_increases_quality_by_three_when_there_are_5_or_less_days_remaining() {
+        Item item = backstagePasses().withQuality(10).withSellIn(5).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(50, app.items[0].quality);
+        assertThat(item.quality, is(13));
     }
 
     @Test
-    public void backstage_passes_quality_drops_to_zero_after_concert() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 0, 40)};
-        GildedRose app = new GildedRose(items);
+    void backstage_passes_quality_can_not_be_above_50() {
+        Item item = backstagePasses().withQuality(48).withSellIn(5).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(0, app.items[0].quality);
+        assertThat(item.quality, is(50));
     }
 
     @Test
-    public void backstage_passes_quality_increase_quality_by_one_when_date_is_more_than_10() {
-        Item[] items = new Item[]{new Item("Backstage passes to a TAFKAL80ETC concert", 11, 40)};
-        GildedRose app = new GildedRose(items);
+    void backstage_passes_quality_drops_to_zero_after_expiring() {
+        Item item = backstagePasses().withQuality(48).withSellIn(0).build();
 
-        app.updateQuality();
+        updateQuality(item);
 
-        assertEquals(41, app.items[0].quality);
+        assertThat(item.quality, is(0));
+    }
+
+    @Test
+    void conjured_decreases_sell_in_after_each_day() {
+        Item item = conjured().withSellIn(3).build();
+
+        updateQuality(item);
+
+        assertThat(item.sellIn, is(2));
+    }
+
+    @Test
+    void conjured_degrades_quality_twice_as_fast() {
+        Item item = conjured().withQuality(20).build();
+
+        updateQuality(item);
+
+        assertThat(item.quality, is(18));
+    }
+
+    private void updateQuality(Item... items) {
+        new GildedRose(items).updateQuality();
     }
 }

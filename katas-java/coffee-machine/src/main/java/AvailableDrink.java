@@ -6,7 +6,6 @@ public enum AvailableDrink {
 
     final String code;
 
-
     AvailableDrink(String code) {
         this.code = code;
     }

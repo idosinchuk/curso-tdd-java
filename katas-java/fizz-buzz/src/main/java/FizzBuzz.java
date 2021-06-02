@@ -1,33 +1,34 @@
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static java.util.stream.IntStream.rangeClosed;
 
 public class FizzBuzz {
 
-    private static final String FIZZ_BUZZ = "FizzBuzz";
-    private static final String FIZZ = "Fizz";
-    private static final String BUZZ = "Buzz";
-    private static final String THREE = "3";
-    private static final String FIVE = "5";
+    private static final List<Function<Integer, String>> rules = List.of(
+            i -> isFizz(i) ? "Fizz" : "",
+            i -> isBuzz(i) ? "Buzz" : ""
+    );
 
     public static List<String> generate() {
-        return IntStream.rangeClosed(1, 100)
-                .mapToObj(FizzBuzz::fizzBuzzed)
+        return rangeClosed(1, 100)
+                .mapToObj(FizzBuzz::transform)
                 .collect(Collectors.toList());
     }
 
-    private static String fizzBuzzed(int number) {
-        if (isFizz(number) && isBuzz(number)) return FIZZ_BUZZ;
-        if (isFizz(number)) return FIZZ;
-        if (isBuzz(number)) return BUZZ;
-        return Integer.toString(number);
+    private static String transform(int i) {
+        var value = rules.stream()
+                .map(f -> f.apply(i))
+                .collect(Collectors.joining());
+        return value.isEmpty() ? Integer.toString(i) : value;
     }
 
-    private static boolean isFizz(int number) {
-        return number % Integer.valueOf(THREE) == 0 || Integer.toString(number).contains(THREE);
+    private static boolean isFizz(int i) {
+        return i % 3 == 0 || Integer.toString(i).contains("3");
     }
 
-    private static boolean isBuzz(int number) {
-        return number % Integer.valueOf(FIVE) == 0 || Integer.toString(number).contains(FIVE);
+    private static boolean isBuzz(int i) {
+        return i % 5 == 0 || Integer.toString(i).contains("5");
     }
 }

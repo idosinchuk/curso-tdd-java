@@ -1,45 +1,71 @@
 package unit_tests;
 
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tirepressuremonitoringsystem.Alarm;
+import tirepressuremonitoringsystem.Logger;
+import tirepressuremonitoringsystem.Sensor;
+
+import static org.mockito.Mockito.*;
 
 class AlarmTest {
 
-    private static final String ALARM_ACTIVATED = "Alarm activated!";
-    private static final String ALARM_DEACTIVATED = "Alarm deactivated!";
+    private Sensor sensor;
+    private Logger logger;
+    private Alarm alarm;
 
-    @Test
-    void when_pressure_is_low_then_activate_alarm() {
-        Double pressure = 16.0;
-
-        AlarmStub alarmStub = new AlarmStub(pressure);
-        alarmStub.check();
-
-        Assertions.assertEquals((ALARM_ACTIVATED), alarmStub.getMessage());
+    @BeforeEach
+    void setUp() {
+        sensor = mock(Sensor.class);
+        logger = mock(Logger.class);
+        alarm = new Alarm(sensor, logger);
     }
 
     @Test
-    void when_pressure_is_high_then_activate_alarm() {
-        Double pressure = 22.0;
+    void alarm_is_activated_when_sensor_value_is_below_threshold() {
+        when(sensor.popNextPressurePsiValue()).thenReturn(15d);
 
-        AlarmStub alarmStub = new AlarmStub(pressure);
-        alarmStub.check();
+        alarm.check();
 
-        Assertions.assertEquals((ALARM_ACTIVATED), alarmStub.getMessage());
+        verify(logger).log("Alarm activated!");
     }
 
     @Test
-    void when_pressure_is_correct_then_deactivate_alarm() {
-        Double pressure = 16.0;
+    void alarm_is_activated_when_sensor_value_is_above_threshold() {
+        when(sensor.popNextPressurePsiValue()).thenReturn(22d);
 
-        AlarmStub alarmStub = new AlarmStub(pressure);
-        alarmStub.check();
+        alarm.check();
 
-        alarmStub.setPressure(19.0);
-        alarmStub.check();
-
-        Assertions.assertEquals((ALARM_DEACTIVATED), alarmStub.getMessage());
+        verify(logger).log("Alarm activated!");
     }
 
+    @Test
+    void alarm_stays_inactive_when_value_is_in_threshold() {
+        when(sensor.popNextPressurePsiValue()).thenReturn(20d);
+
+        alarm.check();
+
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    void alarm_stays_active_when_sensor_value_remains_out_of_threshold() {
+        when(sensor.popNextPressurePsiValue()).thenReturn(15d, 25d);
+
+        alarm.check();
+        alarm.check();
+
+        verify(logger, times(1)).log("Alarm activated!");
+    }
+
+    @Test
+    void alarm_deactivates_after_value_goes_back_to_accepted_threshold() {
+        when(sensor.popNextPressurePsiValue()).thenReturn(25d, 20d);
+
+        alarm.check();
+        alarm.check();
+
+        verify(logger).log("Alarm deactivated!");
+    }
 }
 
